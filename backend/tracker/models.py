@@ -2,31 +2,44 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-# 1. مدل برای ثبت خرج و مخارج (تصویر سوم)
+# 1. مدل دسته‌بندی (کاملاً داینامیک)
+class Category(models.Model):
+    TYPE_CHOICES = [
+        ('expense', 'هزینه'),
+        ('income', 'درآمد'),
+    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=50, verbose_name="عنوان")
+    cat_type = models.CharField(max_length=10, choices=TYPE_CHOICES, default='expense')
+    icon = models.CharField(max_length=10, default='⚪', verbose_name="آیکون (ایموجی)")
+
+    def __str__(self):
+        return f"{self.icon} {self.title} ({self.get_cat_type_display()})"
+
+# 2. مدل حساب‌ها (کارت‌ها)
+class Account(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=50, verbose_name="نام حساب")
+    # balance = models.BigIntegerField(default=0) # بعداً می‌توانیم موجودی اولیه هم بگذاریم
+
+    def __str__(self):
+        return self.title
+
+# 3. مدل تراکنش (آپدیت شده)
 class Transaction(models.Model):
-    CATEGORY_CHOICES = [
-        ('food', 'خوراک'),
-        ('transport', 'حمل و نقل'),
-        ('shopping', 'خرید'),
-
-        ('other', 'سایر'),
-    ]
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    transaction_type = models.CharField(max_length=10, choices=Category.TYPE_CHOICES, default='expense')
     
-    CARD_CHOICES = [
-        ('mellat', 'کارت ملت'),
-        ('melli', 'کارت رفاه'),
-        ('cash', 'نقد'),
-    ]
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE) # برای اینکه بدونی مال کیه
+    # ارتباط با جداول جدید (به جای متن ساده)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, verbose_name="دسته‌بندی")
+    account = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, verbose_name="حساب/کارت")
+    
     amount = models.BigIntegerField(verbose_name="مبلغ (تومان)")
-    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='other')
     description = models.CharField(max_length=255, blank=True, verbose_name="شرح")
-    card = models.CharField(max_length=20, choices=CARD_CHOICES, default='mellat')
     date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"{self.amount} - {self.category}"
+        return f"{self.amount} - {self.description}"
 
 # 2. مدل گزارش روزانه (تصویر دوم)
 class DailyLog(models.Model):
@@ -61,9 +74,9 @@ class Task(models.Model):
     CATEGORY_CHOICES = [
         ('personal', 'شخصی'),
         ('university', 'دانشگاه'),
-        ('work', 'کوئرا'),
+        ('quera', 'کوئرا'),
         ('learning', 'یادگیری'),
-        ('learning', 'کار'),
+        ('work', 'کار'),
         
     ]
 

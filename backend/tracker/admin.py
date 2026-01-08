@@ -1,29 +1,39 @@
 from django.contrib import admin
-from .models import Transaction, DailyLog, Task, Habit, HabitLog
+from .models import Transaction, DailyLog, Task, Habit, HabitLog, Category, Account
 
-# تنظیمات نمایش تراکنش‌ها
+# 1. مدیریت دسته‌بندی‌ها (جدید)
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('title', 'cat_type', 'icon', 'user')
+    list_filter = ('cat_type',)
+
+# 2. مدیریت حساب‌ها (جدید)
+@admin.register(Account)
+class AccountAdmin(admin.ModelAdmin):
+    list_display = ('title', 'user')
+
+# 3. مدیریت تراکنش‌ها (آپدیت شده)
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
-    list_display = ('amount', 'category', 'card', 'date', 'user') # ستون‌هایی که در لیست می‌بینی
-    list_filter = ('category', 'card', 'date') # فیلترهای سمت راست صفحه
-    search_fields = ('description', 'amount') # باکس جستجو
-    date_hierarchy = 'date' # نوار پیمایش تاریخ در بالای صفحه
+    # فیلد 'card' به 'account' تغییر کرد
+    list_display = ('amount', 'category', 'account', 'transaction_type', 'date', 'user') 
+    list_filter = ('transaction_type', 'date', 'category', 'account')
+    search_fields = ('description', 'amount')
+    date_hierarchy = 'date'
 
-# تنظیمات نمایش لاگ‌های روزانه
+# بقیه مدل‌ها بدون تغییر
 @admin.register(DailyLog)
 class DailyLogAdmin(admin.ModelAdmin):
     list_display = ('date', 'sleep_hours', 'mood', 'performance_score', 'user')
     list_filter = ('mood',)
-    ordering = ('-date',) # مرتب‌سازی نزولی (جدیدترین اول)
+    ordering = ('-date',)
 
-# تنظیمات نمایش تسک‌ها
 @admin.register(Task)
 class TaskAdmin(admin.ModelAdmin):
     list_display = ('title', 'category', 'is_done', 'due_date', 'user')
-    list_editable = ('is_done',) # امکان تیک زدن مستقیم از توی لیست!
+    list_editable = ('is_done',)
     list_filter = ('is_done', 'category')
 
-# تنظیمات عادت‌ها
 @admin.register(Habit)
 class HabitAdmin(admin.ModelAdmin):
     list_display = ('name', 'is_active', 'user')
