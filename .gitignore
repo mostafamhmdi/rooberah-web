@@ -51,3 +51,6 @@ rsconnect/
 
 node_modules/
 
+
+*.xslx
+db.sqlite3
